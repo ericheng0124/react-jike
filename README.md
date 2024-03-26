@@ -239,7 +239,7 @@ rsc/pages/Login/index.scss
 
 ```js
 <Form.Item
-  name="username"  // 绑定需要校验的字段名
+  name="mobile"  // 绑定需要校验的字段名
   // 多条校验逻辑,先校验第一条 第一条通过之后在校验第二条
   rules={[  // 校验的规则
     {
@@ -250,13 +250,15 @@ rsc/pages/Login/index.scss
 >
 ```
 - 根据业务定制化修改
+
         增加失焦时效验
+
         手机号有效格式验证
 ```js
 {/*给Form表单组件增加 validateTrigger 属性值为出发条件的字符串格式例如"onChange","onBlur"*/}
 <Form validateTrigger={"onBlur"}>
   <Form.Item
-    name="username"  // 绑定需要校验的字段名
+    name="mobile"  // 绑定需要校验的字段名
     // 多条校验逻辑,先校验第一条 第一条通过之后在校验第二条
     rules={[  // 校验的规则
       {
@@ -269,4 +271,26 @@ rsc/pages/Login/index.scss
       }
     ]}
   >
+```
+### 4.3 登陆页的表单数据获取
+在Form表单组件中添加一个onFinish属性就可以添加一个函数方法传入value就可以获取到验证通过后收集到的数据.
+
+获取到的数据值是一个对象,对象的键就是FormItem绑定的name,值就是对应输入的值.
+```js
+const Login = () => {
+  // 表单获取数据的方法
+  const onFinish = (value)=>{
+    console.log('success:',value)
+  }
+
+  return (
+    <div className="login">
+      <Card className="login-container">
+        <img className="login-logo" src={logo} alt="" />
+        {/* 登录表单 */}
+        {/*给Form表单组件增加 validateTrigger 属性值为出发条件的字符串格式例如"onChange","onBlur"*/}
+        <Form
+          validateTrigger={"onBlur"}
+          onFinish={onFinish}  // 获取校验通过后收集到的数据
+        >
 ```

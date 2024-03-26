@@ -3,15 +3,23 @@ import { Card, Form, Input, Button } from 'antd'
 import logo from '@/assets/logo.png'
 
 const Login = () => {
+  // 表单获取数据的方法
+  const onFinish = (value)=>{
+    console.log('success:',value)
+  }
+
   return (
     <div className="login">
       <Card className="login-container">
         <img className="login-logo" src={logo} alt="" />
         {/* 登录表单 */}
         {/*给Form表单组件增加 validateTrigger 属性值为出发条件的字符串格式例如"onChange","onBlur"*/}
-        <Form validateTrigger={"onBlur"}>
+        <Form
+          validateTrigger={"onBlur"}
+          onFinish={onFinish}  // 获取校验通过后收集到的数据
+        >
           <Form.Item
-            name="username"  // 绑定需要校验的字段名
+            name="mobile"  // 绑定需要校验的字段名
             // 多条校验逻辑,先校验第一条 第一条通过之后在校验第二条
             rules={[  // 校验的规则
               {
@@ -27,7 +35,7 @@ const Login = () => {
             <Input size="large" placeholder="请输入手机号" />
           </Form.Item>
           <Form.Item
-            name="password"
+            name="code"
             rules={[
               {
                 required:true,
