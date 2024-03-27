@@ -1,17 +1,22 @@
 import './index.scss'
-import {Card, Form, Input, Button} from 'antd'
+import {Card, Form, Input, Button, message} from 'antd'
 import logo from '@/assets/logo.png'
 import {useDispatch} from "react-redux";
 import {fetchLogin} from "@/store/modules/user";
+import {useNavigate} from "react-router-dom";
 
 const Login = () => {
   const dispatch = useDispatch()
-
+  const navigate = useNavigate()
   // 表单获取数据的方法
-  const onFinish = (values) => {
+  const onFinish = async (values) => {
     // console.log('success:', values)  // {mobile:'137987654321',code:'123123'}
     // 触发异步action fetchLogin
-    dispatch(fetchLogin(values))
+    await dispatch(fetchLogin(values))
+    // 1. 跳转页面
+    navigate('/')
+    // 2. 提示用户登录成功
+    message.success('登陆成功!!!')
   }
 
 
