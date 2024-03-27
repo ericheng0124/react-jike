@@ -423,7 +423,7 @@ const Login = () => {
   const dispatch = useDispatch()
   // 表单获取数据的方法
   const onFinish = (values) => {
-    // console.log('success:', values)  // {mobile:'138000000002',code:'246810'}
+    // console.log('success:', values)  // {mobile:'138000000002',code:'246810'}  服务器配置的接收值
     // 触发异步action fetchLogin
     dispatch(fetchLogin(values))
   }
@@ -434,4 +434,88 @@ const Login = () => {
   )
 }
 export default Login
+```
+### 6.4 登陆页-Token的持久化存储
+将异步获取到的token存储到浏览器的localStorage中和Redux中
+
+在Redux初始化的时候优先在localStorage中找一下,如果有就直接使用,如果没有就设置为空
+这样就可以实现token的持久化存储
+
+在src/store/user.js中的renducers里找到同步设置token的方法(setToken)
+```js
+/*
+* 1.在Redux同步获取token存储时,
+* 将获取到的token也存储一份到浏览器的localStorage中
+* */
+reducers:{
+  setToken(state,action){
+    state.token = action.payload
+    // 同时在localStorage中存储一份
+    localStorage.setItem('token_key',action.payload)
+  }
+}
+```
+```js
+/*
+* 2.在Redux初始化的时候优先在浏览器的localStorage中找,
+* 如果有直接就使用,
+* 如果没有就设置为空
+* */
+// 初始化数据状态
+initialState: {
+  // 在初始化token的时候先判断本地的localStorage里是否值,如果有就直接使用该值,如果没有就设置为空
+  token: localStorage.getItem('token_key') || ''
+}
+```
+## 7 封装localStorage的存,取,删三个方法方便使用
+将localStorage的添加setItem,获取getItem,删除removeItem3个方法封装为一个模块
+
+rsc/utils/token.js
+```js
+const TOKENKEY = 'token_key'
+// 存储token
+function setToken(token){
+  localStorage.setItem(TOKENKEY,token)
+}
+// 获取token
+function getToken(){
+  return localStorage.getItem(TOKENKEY)
+}
+// 删除token
+function removeToken(){
+  localStorage.removeItem(TOKENKEY)
+}
+export{
+  setToken,
+  getToken,
+  removeToken
+}
+```
+将封装好的模块重新引入rsc/store/modules/user.js中提换
+```js
+/*
+* 1.在Redux同步获取token存储时,
+* 将获取到的token也存储一份到浏览器的localStorage中
+* */
+import {setToken as _setToken,getToken} from "@/utils"
+
+reducers:{
+  setToken(state,action){
+    state.token = action.payload
+    // 同时在localStorage中存储一份
+    _setToken(action.payload)
+  }
+}
+```
+```js
+/*
+* 2.在Redux初始化的时候优先在浏览器的localStorage中找,
+* 如果有直接就使用,
+* 如果没有就设置为空
+* */
+// 初始化数据状态
+initialState: {
+  // 在初始化token的时候先判断本地的localStorage里是否值,如果有就直接使用该值,如果没有就设置为空
+  token: getToken() || ''
+}
 ```
