@@ -294,3 +294,144 @@ const Login = () => {
           onFinish={onFinish}  // 获取校验通过后收集到的数据
         >
 ```
+## 5 封装request请求模块
+项目使用目前主流的axios
+### 5.1 安装axios包
+```
+npm i axios
+```
+### 5.2 封装request模块
+在utils文件中新增一个request.js文件
+rsc/utils/request.js
+```js
+// axios的封装处理
+import axios from "axios";
+
+const request = axios.create({
+  // 1.根域名配置
+  baseURL:'http://geek.itheima.net/v1_0',
+  // 2.配置超时时间 单位:毫秒
+  timeout:5000
+})
+
+// 3.1 添加请求拦截器
+// 请求发送之前 做拦截 插入一些自定义的配置 [参数的处理]
+request.interceptors.request.use((config)=> {
+  return config
+}, (error)=> {
+  return Promise.reject(error)
+})
+
+// 3.2 添加响应拦截器
+// 在响应返回到客户端之前 做拦截 重点处理返回的数据
+request.interceptors.response.use((response)=> {
+  // 2xx 范围内的状态码都会触发该函数。
+  // 对响应数据做点什么
+  return response.data
+}, (error)=> {
+  // 超出 2xx 范围的状态码都会触发该函数。
+  // 对响应错误做点什么
+  return Promise.reject(error)
+})
+
+// 导出request
+export {request}
+```
+### 5.3 对工具模块函数做统一的中转处理
+在src/utils/index.js
+```js
+// 统一中转工具模块函数
+import {request} from "./request";
+
+export {
+  request
+}
+```
+## 6 登陆页 使用Redux管理Token
+因为Token作为一个用户的标识数据,需要在多个模块中共享,Redux可以方便的解决状态共享问题
+
+1.Redux中编写获取Token的异步获取和同步修改
+
+2.Login组件负责提交action并且把表单数据传递过来
+
+### 6.1 创建userStore的切片
+src/store/modules/user.js
+```js
+// 和用户相关的状态管理
+
+import {createSlice} from "@reduxjs/toolkit";
+import {request} from "@/utils";
+
+const userStore = createSlice({
+  // 模块名
+  name: 'user',
+  // 初始化数据状态
+  initialState: {
+    token: ''
+  },
+  // 同步修改方法
+  reducers: {
+    setToken(state, action) {
+      state.token = action.payload
+    }
+  }
+})
+
+// 解构出actionCreater
+const {setToken} = userStore.actions
+
+// 获取reducer函数
+const userReducer = userStore.reducer
+
+// 异步方法 完成登陆获取token
+const fetchLogin = (loginForm) => {
+  return async (dispatch) => {
+    // 1. 发送异步请求
+    const res = await request.post('/authorizations', loginForm)
+    // 2. 提交同步action进行token的存入
+    dispatch(setToken(res.data.token))
+  }
+}
+
+export {fetchLogin, setToken}
+
+export default userReducer
+```
+### 6.2 在创建store实例对象
+src/store/index.js
+```js
+// 组合redux子模块 + 导出store实例
+
+import {configureStore} from "@reduxjs/toolkit";
+import userReducer from "@/store/modules/user";
+
+export default configureStore({
+  reducer:{
+    user:userReducer
+  }
+})
+```
+### 6.3 在登陆页中实现Token异步获取
+src/pages/Login/index.js
+```js
+import {Card, Form, Input, Button} from 'antd'
+import logo from '@/assets/logo.png'
+import {useDispatch} from "react-redux";
+import {fetchLogin} from "@/store/modules/user";
+
+const Login = () => {
+  const dispatch = useDispatch()
+  // 表单获取数据的方法
+  const onFinish = (values) => {
+    // console.log('success:', values)  // {mobile:'138000000002',code:'246810'}
+    // 触发异步action fetchLogin
+    dispatch(fetchLogin(values))
+  }
+  return (
+    <div>
+      ......
+    </div>
+  )
+}
+export default Login
+```
