@@ -10,7 +10,7 @@ const Login = () => {
   const navigate = useNavigate()
   // 表单获取数据的方法
   const onFinish = async (values) => {
-    // console.log('success:', values)  // {mobile:'137987654321',code:'123123'}
+    // console.log('success:', values)  //后端服务器验证的账户密码是 {mobile:'13800000002',code:'246810'}
     // 触发异步action fetchLogin
     await dispatch(fetchLogin(values))
     // 1. 跳转页面
