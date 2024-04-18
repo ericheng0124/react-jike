@@ -10,7 +10,8 @@ const userStore = createSlice({
   // 初始化数据状态
   initialState: {
     // 在初始化token的时候先判断本地的localStorage里是否值,如果有就直接使用该值,如果没有就设置为空
-    token: getToken() || ''
+    token: getToken() || '',
+    userInfo: {}
   },
   // 同步修改方法
   reducers: {
@@ -18,12 +19,15 @@ const userStore = createSlice({
       state.token = action.payload
       // 在 localStorage 中也存一份获取到的token
       _setToken(action.payload)
+    },
+    setUserInfo(state, action) {
+      state.userInfo = action.payload
     }
   }
 })
 
 // 解构出actionCreater
-const {setToken} = userStore.actions
+const {setToken, setUserInfo} = userStore.actions
 
 // 获取reducer函数
 const userReducer = userStore.reducer
@@ -38,6 +42,13 @@ const fetchLogin = (loginForm) => {
   }
 }
 
-export {fetchLogin, setToken}
+const fetchUserInfo = () => {
+  return async (dispatch) => {
+    const res = await request.get('/user/profile')
+    dispatch(setUserInfo(res.data))
+  }
+}
+
+export {fetchLogin, setToken, fetchUserInfo}
 
 export default userReducer
