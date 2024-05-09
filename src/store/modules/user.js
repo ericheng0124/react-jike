@@ -42,6 +42,7 @@ const fetchLogin = (loginForm) => {
   }
 }
 
+// 获取个人用户信息异步方法
 const fetchUserInfo = () => {
   return async (dispatch) => {
     const res = await request.get('/user/profile')
