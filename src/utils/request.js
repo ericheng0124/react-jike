@@ -1,6 +1,7 @@
 // axios的封装处理
 import axios from "axios";
-import {getToken} from "@/utils/token";
+import {getToken, removeToken} from "@/utils/token";
+import router from '@/router';
 
 
 const request = axios.create({
@@ -34,6 +35,13 @@ request.interceptors.response.use((response) => {
 }, (error) => {
   // 超出 2xx 范围的状态码都会触发该函数。
   // 对响应错误做点什么
+  // 监控401 token失效
+  console.dir(error)
+  if(error.response.status===401){
+    removeToken()  // 清除本地token
+    router.navigate('/login')  // 跳转登陆
+    window.location.reload()  // 解决页面不自动跳转的问题,使用window.location.reload() 页面重载方法
+  }
   return Promise.reject(error)
 })
 
