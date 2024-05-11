@@ -31,7 +31,7 @@ const BarChart = ({title}) => {
     }
     // 3. 使用图表参数完成图表渲染
     option && myChart.setOption(option)
-  }, [])
+  }, [title])
   return (
     <div ref={chartRef} style={{height: 300, width: 400}}></div>
   )
