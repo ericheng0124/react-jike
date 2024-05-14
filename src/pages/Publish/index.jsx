@@ -22,7 +22,8 @@ const {Option} = Select
 const Publish = () => {
   // 获取频道列表
   const [channelList, setChannelList] = useState([])
-
+  // 封面图片模式
+  const [typeValue, setTypeValue] = useState(0)
 
   useEffect(() => {
     // 1. 封装函数,函数体内调用接口
@@ -52,10 +53,16 @@ const Publish = () => {
     createArticleAPI(reqData)
   }
 
+  // 切换图片封面类型
+  const onTypeChange = (e) => {
+    // console.log(e.target.value)
+    setTypeValue(e.target.value)
+  }
+
   // 上传图片的回调方法
   const [imageList, setImageList] = useState([])
   const onChange = (value) => {
-    console.log('正在上传中', value)
+    // console.log('正在上传中', value)
     setImageList(value.fileList)
   }
 
@@ -73,7 +80,7 @@ const Publish = () => {
         <Form
           labelCol={{span: 4}}
           wrapperCol={{span: 12}}
-          initialValues={{type: 1}}
+          initialValues={{type: 0}}
           onFinish={onFinish}
         >
           <Form.Item
@@ -96,7 +103,7 @@ const Publish = () => {
           </Form.Item>
           <Form.Item label="封面">
             <Form.Item name="type">
-              <Radio.Group>
+              <Radio.Group onChange={onTypeChange}>
                 {/*
                   listType:决定选择框的样式
                   showUploadList:控制显示上传列表
@@ -106,17 +113,19 @@ const Publish = () => {
                 <Radio value={0}>无图</Radio>
               </Radio.Group>
             </Form.Item>
-            <Upload
-              listType="picture-card"
-              showUploadList
-              action={'http://geek.itheima.net/v1_0/upload'}
-              name='image'
-              onChange={onChange}
-            >
-              <div style={{marginTop: 8}}>
-                <PlusOutlined/>
-              </div>
-            </Upload>
+            {typeValue > 0 &&
+              <Upload
+                listType="picture-card"
+                showUploadList
+                action={'http://geek.itheima.net/v1_0/upload'}
+                name='image'
+                onChange={onChange}
+              >
+                <div style={{marginTop: 8}}>
+                  <PlusOutlined/>
+                </div>
+              </Upload>
+            }
           </Form.Item>
           <Form.Item
             label="内容"
