@@ -3,9 +3,18 @@
 import {request} from "@/utils"
 
 // 1. 获取频道列表
-export function getChannelAPI(){
+export function getChannelAPI() {
   return request({
     url: '/channels',
-    method:'GET'
+    method: 'GET'
+  })
+}
+
+// 2. 提交文章表单
+export function createArticleAPI(data) {
+  return request({
+    url: '/mp/articles?draft=false',
+    method: 'POST',
+    data: data
   })
 }
