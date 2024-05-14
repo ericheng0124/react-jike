@@ -23,6 +23,17 @@ const Publish = () => {
   // 获取频道列表
   const [channelList, setChannelList] = useState([])
 
+
+  useEffect(() => {
+    // 1. 封装函数,函数体内调用接口
+    const getChannelList = async () => {
+      const res = await getChannelAPI()
+      setChannelList(res.data.channels)
+    }
+    // 2. 调用函数获取选择列表
+    getChannelList()
+  }, [])
+
   // 提交表单数据
   const onFinish = (formValue) => {
     console.log(formValue)
@@ -41,15 +52,12 @@ const Publish = () => {
     createArticleAPI(reqData)
   }
 
-  useEffect(() => {
-    // 1. 封装函数,函数体内调用接口
-    const getChannelList = async () => {
-      const res = await getChannelAPI()
-      setChannelList(res.data.channels)
-    }
-    // 2. 调用函数获取选择列表
-    getChannelList()
-  }, [])
+  // 上传图片的回调方法
+  const [imageList, setImageList] = useState([])
+  const onChange = (value) => {
+    console.log('正在上传中', value)
+    setImageList(value.fileList)
+  }
 
   return (
     <div className="publish">
@@ -86,6 +94,30 @@ const Publish = () => {
               ))}
             </Select>
           </Form.Item>
+          <Form.Item label="封面">
+            <Form.Item name="type">
+              <Radio.Group>
+                {/*
+                  listType:决定选择框的样式
+                  showUploadList:控制显示上传列表
+                */}
+                <Radio value={1}>单图</Radio>
+                <Radio value={3}>三图</Radio>
+                <Radio value={0}>无图</Radio>
+              </Radio.Group>
+            </Form.Item>
+            <Upload
+              listType="picture-card"
+              showUploadList
+              action={'http://geek.itheima.net/v1_0/upload'}
+              name='image'
+              onChange={onChange}
+            >
+              <div style={{marginTop: 8}}>
+                <PlusOutlined/>
+              </div>
+            </Upload>
+          </Form.Item>
           <Form.Item
             label="内容"
             name="content"
@@ -98,7 +130,6 @@ const Publish = () => {
               placeholder="请输入文章内容"
             />
           </Form.Item>
-
           <Form.Item wrapperCol={{offset: 4}}>
             <Space>
               <Button size="large" type="primary" htmlType="submit">
