@@ -23,7 +23,7 @@ const Publish = () => {
   // 获取频道列表
   const [channelList, setChannelList] = useState([])
   // 封面图片模式
-  const [typeValue, setTypeValue] = useState(0)
+  const [imageType, setImageType] = useState(0)
 
   useEffect(() => {
     // 1. 封装函数,函数体内调用接口
@@ -56,7 +56,7 @@ const Publish = () => {
   // 切换图片封面类型
   const onTypeChange = (e) => {
     // console.log(e.target.value)
-    setTypeValue(e.target.value)
+    setImageType(e.target.value)
   }
 
   // 上传图片的回调方法
@@ -80,7 +80,7 @@ const Publish = () => {
         <Form
           labelCol={{span: 4}}
           wrapperCol={{span: 12}}
-          initialValues={{type: 0}}
+          initialValues={{type: 0}}  // 控制整个表单区域的默认初始值
           onFinish={onFinish}
         >
           <Form.Item
@@ -113,13 +113,14 @@ const Publish = () => {
                 <Radio value={0}>无图</Radio>
               </Radio.Group>
             </Form.Item>
-            {typeValue > 0 &&
+            {imageType > 0 &&
               <Upload
                 listType="picture-card"
                 showUploadList
                 action={'http://geek.itheima.net/v1_0/upload'}
                 name='image'
                 onChange={onChange}
+                maxCount={imageType}
               >
                 <div style={{marginTop: 8}}>
                   <PlusOutlined/>
