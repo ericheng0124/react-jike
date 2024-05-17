@@ -2,14 +2,24 @@ import {Link} from 'react-router-dom'
 import {Card, Breadcrumb, Form, Button, Radio, DatePicker, Select} from 'antd'
 // 引入汉化包,让时间选择器显示为中文
 import locale from 'antd/es/date-picker/locale/zh_CN'
-import { Table, Tag, Space } from 'antd'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import {Table, Tag, Space} from 'antd'
+import {EditOutlined, DeleteOutlined} from '@ant-design/icons'
 import img404 from '@/assets/error.png'
+import {useChannel} from "@/hooks/channel";
+import {useEffect, useState} from "react";
+import {getArticleListAPI} from "@/apis/article";
 
 const {Option} = Select
 const {RangePicker} = DatePicker
 
 const Article = () => {
+  // 使用自定义钩子函数来获取频道列表
+  const {channelList} = useChannel()
+
+  const status = {
+    1: <Tag color='warning'>待审核</Tag>,
+    2: <Tag color='success'>审核通过</Tag>
+  }
 
   // 准备列数据
   const columns = [
@@ -18,7 +28,7 @@ const Article = () => {
       dataIndex: 'cover',
       width: 120,
       render: cover => {
-        return <img src={cover.images[0] || img404} width={80} height={60} alt="" />
+        return <img src={cover.images[0] || img404} width={80} height={60} alt=""/>
       }
     },
     {
@@ -29,7 +39,10 @@ const Article = () => {
     {
       title: '状态',
       dataIndex: 'status',
-      render: data => <Tag color="green">审核通过</Tag>
+      // data - 后端返回的状态status 根据它做条件渲染
+      // data === 1 待审核
+      // data === 2 审核通过
+      render: data => status[data]
     },
     {
       title: '发布时间',
@@ -52,12 +65,12 @@ const Article = () => {
       render: data => {
         return (
           <Space size="middle">
-            <Button type="primary" shape="circle" icon={<EditOutlined />} />
+            <Button type="primary" shape="circle" icon={<EditOutlined/>}/>
             <Button
               type="primary"
               danger
               shape="circle"
-              icon={<DeleteOutlined />}
+              icon={<DeleteOutlined/>}
             />
           </Space>
         )
@@ -65,20 +78,18 @@ const Article = () => {
     }
   ]
   // 准备表格body数据
-  const data = [
-    {
-      id: '8218',
-      comment_count: 0,
-      cover: {
-        images: [],
-      },
-      like_count: 0,
-      pubdate: '2019-03-11 09:00:00',
-      read_count: 2,
-      status: 2,
-      title: 'wkwebview离线化加载h5资源解决方案'
+  // 获取文章列表
+  const [dataList, setDataList] = useState([])
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    async function getDataList() {
+      const res = await getArticleListAPI()
+      setDataList(res.data.results)
+      setCount(res.data.total_count)
     }
-  ]
+
+    getDataList()
+  }, [])
 
   return (
     <div>
@@ -103,11 +114,11 @@ const Article = () => {
           <Form.Item label="频道" name="channel_id">
             <Select
               placeholder="请选择文章频道"
-              defaultValue="lucy"
               style={{width: 120}}
             >
-              <Option value="jack">Jack</Option>
-              <Option value="lucy">Lucy</Option>
+              {channelList.map(item =>
+                <Option key={item.id} value={item.id}>{item.name}</Option>
+              )}
             </Select>
           </Form.Item>
 
@@ -124,8 +135,8 @@ const Article = () => {
         </Form>
       </Card>
       {/* 表格区域 */}
-      <Card title={`根据筛选条件共查询到 count 条结果：`}>
-        <Table rowKey="id" columns={columns} dataSource={data} />
+      <Card title={`根据筛选条件共查询到 ${count} 条结果：`}>
+        <Table rowKey="id" columns={columns} dataSource={dataList}/>
       </Card>
     </div>
   )

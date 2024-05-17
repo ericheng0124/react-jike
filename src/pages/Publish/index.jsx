@@ -14,23 +14,28 @@ import {Link} from 'react-router-dom'
 import './index.scss'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
-import {useEffect, useState} from "react"
+import {useEffect, useRef, useState} from "react"
 // import {getChannelAPI} from "@/apis/article"  // 使用axios获取频道列表数据
-import {createArticleAPI} from "@/apis/article";
-import {useDispatch, useSelector} from "react-redux";
-import {fetchChannelList} from "@/store/modules/channel";
+import {createArticleAPI} from "@/apis/article"
+// 使用redux获取频道列表
+import {useDispatch, useSelector} from "react-redux"
+import {fetchChannelList} from "@/store/modules/channel"
 
 const {Option} = Select
 
 const Publish = () => {
-  // 获取频道列表
+  // 直接使用axios 获取频道列表
   // const [channelList, setChannelList] = useState([])
+
   // 封面图片模式
   const [imageType, setImageType] = useState(0)
 
   // 使用redux获取频道列表
   const dispatch = useDispatch()
   const {channelList} = useSelector(state => state.channel)
+
+  const quillRef = useRef(null);
+
   /*
   // 直接使用axios获取频道列表数据
   useEffect(() => {
@@ -45,9 +50,21 @@ const Publish = () => {
   */
 
   // 使用redux获取频道列表数据
-  useEffect(()=>{
+  useEffect(() => {
     dispatch(fetchChannelList())
-  },[dispatch])
+    const targetNode = quillRef.current.editor.root;
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        console.log(mutation.type);
+        // 在这里处理节点变化
+      });
+    });
+    const config = { attributes: true, childList: true, subtree: true };
+    observer.observe(targetNode, config);
+    return () => {
+      observer.disconnect();
+    };
+  }, [dispatch])
 
   // 提交表单数据
   const onFinish = (formValue) => {
@@ -151,6 +168,7 @@ const Publish = () => {
           >
             {/*富文本编辑器*/}
             <ReactQuill
+              ref={quillRef}
               className="publish-quill"
               theme="snow"
               placeholder="请输入文章内容"
