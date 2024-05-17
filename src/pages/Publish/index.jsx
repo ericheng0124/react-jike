@@ -15,16 +15,24 @@ import './index.scss'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import {useEffect, useState} from "react"
-import {getChannelAPI, createArticleAPI} from "@/apis/article"
+// import {getChannelAPI} from "@/apis/article"  // 使用axios获取频道列表数据
+import {createArticleAPI} from "@/apis/article";
+import {useDispatch, useSelector} from "react-redux";
+import {fetchChannelList} from "@/store/modules/channel";
 
 const {Option} = Select
 
 const Publish = () => {
   // 获取频道列表
-  const [channelList, setChannelList] = useState([])
+  // const [channelList, setChannelList] = useState([])
   // 封面图片模式
   const [imageType, setImageType] = useState(0)
 
+  // 使用redux获取频道列表
+  const dispatch = useDispatch()
+  const {channelList} = useSelector(state => state.channel)
+  /*
+  // 直接使用axios获取频道列表数据
   useEffect(() => {
     // 1. 封装函数,函数体内调用接口
     const getChannelList = async () => {
@@ -34,12 +42,18 @@ const Publish = () => {
     // 2. 调用函数获取选择列表
     getChannelList()
   }, [])
+  */
+
+  // 使用redux获取频道列表数据
+  useEffect(()=>{
+    dispatch(fetchChannelList())
+  },[dispatch])
 
   // 提交表单数据
   const onFinish = (formValue) => {
-    console.log(formValue)
+    // console.log(formValue)
     // 校验封面类型imageType是否和实际图片列表imageList数量一致
-    if(imageList.length !== imageType) return message.warning('封面类型和图片数量不匹配')
+    if (imageList.length !== imageType) return message.warning('封面类型和图片数量不匹配')
     const {title, content, channel_id} = formValue
     // 1. 按照接口文档格式处理表单数据
     const reqData = {
@@ -47,7 +61,7 @@ const Publish = () => {
       content,
       cover: {
         type: imageType,  // 当前的封面模式
-        images: imageList.map(item=>item.response.data.url)  // 图片列表
+        images: imageList.map(item => item.response.data.url)  // 图片列表
       },
       channel_id
     }
