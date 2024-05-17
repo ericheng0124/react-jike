@@ -77,19 +77,44 @@ const Article = () => {
       }
     }
   ]
+
+  // 1. 准备参数
+  const [reqData, setReqData] = useState({
+    status: '',
+    channel_id: '',
+    begin_pubdate: '',
+    end_pubdate: '',
+    page: 1,
+    per_page: 4
+  })
+
   // 准备表格body数据
   // 获取文章列表
   const [dataList, setDataList] = useState([])
   const [count, setCount] = useState(0)
   useEffect(() => {
     async function getDataList() {
-      const res = await getArticleListAPI()
+      const res = await getArticleListAPI(reqData)
       setDataList(res.data.results)
       setCount(res.data.total_count)
     }
-
     getDataList()
-  }, [])
+  }, [reqData])
+
+  // 2. 获取用户选择的筛选数据
+  const onFinish = (formValue) => {
+    console.log(formValue)
+    // 3. 把表单收集到的数据放到参数中(不可变方式)
+    setReqData({
+      ...reqData,
+      status: formValue.status,
+      channel_id: formValue.channel_id,
+      begin_pubdate: formValue.date[0].format('YYYY-MM-DD'),
+      end_pubdate: formValue.date[1].format('YYYY-MM-DD')
+    })
+    // 4. 重新拉取文章列表和渲染table逻辑重复的,需要复用
+    // reqData依赖项发生变化 重复执行副作用函数
+  }
 
   return (
     <div>
@@ -102,7 +127,11 @@ const Article = () => {
         }
         style={{marginBottom: 20}}
       >
-        <Form initialValues={{status: null}}>
+        {/*筛选功能*/}
+        <Form
+          initialValues={{status: ''}}
+          onFinish={onFinish}
+        >
           <Form.Item label="状态" name="status">
             <Radio.Group>
               <Radio value={''}>全部</Radio>
