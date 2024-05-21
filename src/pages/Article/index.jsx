@@ -1,5 +1,5 @@
-import {Link} from 'react-router-dom'
-import {Card, Breadcrumb, Form, Button, Radio, DatePicker, Select} from 'antd'
+import {Link, useNavigate} from 'react-router-dom'
+import {Card, Breadcrumb, Form, Button, Radio, DatePicker, Select, Popconfirm, message} from 'antd'
 // 引入汉化包,让时间选择器显示为中文
 import locale from 'antd/es/date-picker/locale/zh_CN'
 import {Table, Tag, Space} from 'antd'
@@ -7,7 +7,7 @@ import {EditOutlined, DeleteOutlined} from '@ant-design/icons'
 import img404 from '@/assets/error.png'
 import {useChannel} from "@/hooks/channel"
 import {useEffect, useState} from "react"
-import {getArticleListAPI} from "@/apis/article"
+import {delArticleAPI, getArticleListAPI} from "@/apis/article"
 
 
 const {Option} = Select
@@ -16,6 +16,8 @@ const {RangePicker} = DatePicker
 const Article = () => {
   // 使用自定义钩子函数来获取频道列表
   const {channelList} = useChannel()
+
+  const navigate = useNavigate()
 
   const status = {
     1: <Tag color='warning'>待审核</Tag>,
@@ -66,18 +68,27 @@ const Article = () => {
       render: data => {
         return (
           <Space size="middle">
-            <Button type="primary" shape="circle" icon={<EditOutlined/>}/>
-            <Button
-              type="primary"
-              danger
-              shape="circle"
-              icon={<DeleteOutlined/>}
-            />
+            <Button type="primary" shape="circle" icon={<EditOutlined/>} onClick={()=>navigate(`/publish?id=${data.id}`)}/>
+            <Popconfirm
+              title="删除文章"
+              description="确认要删除当前文章吗?"
+              onConfirm={() => onConfirm(data)}
+              okText="是"
+              cancelText="否"
+            >
+              <Button
+                type="primary"
+                danger
+                shape="circle"
+                icon={<DeleteOutlined/>}
+              />
+            </Popconfirm>
           </Space>
         )
       }
     }
   ]
+
 
   // 1. 准备参数
   const [reqData, setReqData] = useState({
@@ -99,6 +110,7 @@ const Article = () => {
       setDataList(res.data.results)
       setCount(res.data.total_count)
     }
+
     getDataList()
   }, [reqData])
 
@@ -129,7 +141,22 @@ const Article = () => {
   const onShowSizeChange = (current, pageSize) => {
     console.log(current, pageSize)
     reqData.per_page = pageSize
-  };
+  }
+
+  // 删除文章方法
+  const onConfirm = async (data) => {
+    console.log(data)
+    // 调取删除文章接口发送请求
+    const res = await delArticleAPI(data.id)
+    if(res){
+      message.success('文章已删除')
+      // 更新文章列表  触发重新拉取文章列表并渲染
+      setReqData({
+        ...reqData
+      })
+    }
+  }
+
 
   return (
     <div>

@@ -27,3 +27,19 @@ export function getArticleListAPI(params){
     params
   })
 }
+
+// 4. 删除文章
+export function delArticleAPI(id){
+  return request({
+    url:`/mp/articles/${id}`,
+    method:'DELETE',
+  })
+}
+
+// 5. 获取文章详情
+export function getArticleById(id){
+  return request({
+    url:`/mp/articles/${id}`,
+    method:'GET'
+  })
+}

@@ -10,18 +10,20 @@ import {
   Select, message
 } from 'antd'
 import {PlusOutlined} from '@ant-design/icons'
-import {Link} from 'react-router-dom'
+import {Link, useSearchParams} from 'react-router-dom'
 import './index.scss'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import {useEffect, useRef, useState} from "react"
 // import {getChannelAPI} from "@/apis/article"  // 使用axios获取频道列表数据
-import {createArticleAPI} from "@/apis/article"
+import {createArticleAPI, getArticleById} from "@/apis/article"
 // 使用redux获取频道列表
 import {useDispatch, useSelector} from "react-redux"
 import {fetchChannelList} from "@/store/modules/channel"
 
+
 const {Option} = Select
+
 
 const Publish = () => {
   // 直接使用axios 获取频道列表
@@ -34,7 +36,8 @@ const Publish = () => {
   const dispatch = useDispatch()
   const {channelList} = useSelector(state => state.channel)
 
-  const quillRef = useRef(null);
+  const quillRef = useRef(null)
+
 
   /*
   // 直接使用axios获取频道列表数据
@@ -49,25 +52,28 @@ const Publish = () => {
   }, [])
   */
 
+  // 获取回填数据
+  const [searchParams] = useSearchParams()
+  const articleId = searchParams.get('id')
+  const [form] = Form.useForm()
+  // console.log(articleId)
+
+
   // 使用redux获取频道列表数据
   useEffect(() => {
     dispatch(fetchChannelList())
-    const targetNode = quillRef.current.editor.root;
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        console.log(mutation.type);
-        // 在这里处理节点变化
-      });
-    });
-    const config = { attributes: true, childList: true, subtree: true };
-    observer.observe(targetNode, config);
-    return () => {
-      observer.disconnect();
-    };
-  }, [dispatch])
+    // 文章列表点击编辑时回填数据
+    // 1. 通过id获取数据
+    async function getArticleDetail() {
+      const res = await getArticleById(articleId)
+      form.setFieldsValue(res.data)
+    }
+    getArticleDetail()
+    // 2. 调用实例方法 完成回填
+  }, [dispatch, articleId, form])
 
   // 提交表单数据
-  const onFinish = (formValue) => {
+  const onFinish = async (formValue) => {
     // console.log(formValue)
     // 校验封面类型imageType是否和实际图片列表imageList数量一致
     if (imageList.length !== imageType) return message.warning('封面类型和图片数量不匹配')
@@ -83,7 +89,11 @@ const Publish = () => {
       channel_id
     }
     // 2. 调用接口提交表单数据
-    createArticleAPI(reqData)
+    const res = await createArticleAPI(reqData)
+    if (res) {
+      message.success('创建文章成功')
+      form.resetFields()
+    }
   }
 
   // 切换图片封面类型
@@ -115,6 +125,7 @@ const Publish = () => {
           wrapperCol={{span: 12}}
           initialValues={{type: 0}}  // 控制整个表单区域的默认初始值
           onFinish={onFinish}
+          form={form}
         >
           <Form.Item
             label="标题"
