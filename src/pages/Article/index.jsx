@@ -5,9 +5,10 @@ import locale from 'antd/es/date-picker/locale/zh_CN'
 import {Table, Tag, Space} from 'antd'
 import {EditOutlined, DeleteOutlined} from '@ant-design/icons'
 import img404 from '@/assets/error.png'
-import {useChannel} from "@/hooks/channel";
-import {useEffect, useState} from "react";
-import {getArticleListAPI} from "@/apis/article";
+import {useChannel} from "@/hooks/channel"
+import {useEffect, useState} from "react"
+import {getArticleListAPI} from "@/apis/article"
+
 
 const {Option} = Select
 const {RangePicker} = DatePicker
@@ -116,6 +117,20 @@ const Article = () => {
     // reqData依赖项发生变化 重复执行副作用函数
   }
 
+  // 分页
+  const onPageChange = (page) => {
+    console.log(page)
+    setReqData({
+      ...reqData,
+      page
+    })
+  }
+
+  const onShowSizeChange = (current, pageSize) => {
+    console.log(current, pageSize)
+    reqData.per_page = pageSize
+  };
+
   return (
     <div>
       <Card
@@ -165,7 +180,19 @@ const Article = () => {
       </Card>
       {/* 表格区域 */}
       <Card title={`根据筛选条件共查询到 ${count} 条结果：`}>
-        <Table rowKey="id" columns={columns} dataSource={dataList}/>
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={dataList}
+          pagination={{
+            showQuickJumper: true,
+            total: count,
+            pageSize: reqData.per_page,
+            current: reqData.page,
+            onChange: onPageChange,
+            onShowSizeChange: onShowSizeChange
+          }}
+        />
       </Card>
     </div>
   )
