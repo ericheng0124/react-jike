@@ -38,6 +38,18 @@ const Publish = () => {
 
   const quillRef = useRef(null)
 
+  // 切换图片封面类型
+  const onTypeChange = (e) => {
+    // console.log(e.target.value)
+    setImageType(e.target.value)
+  }
+
+  // 上传图片的回调方法
+  const [imageList, setImageList] = useState([])
+  const onChange = (value) => {
+    console.log('正在上传中', value)
+    setImageList(value.fileList)
+  }
 
   /*
   // 直接使用axios获取频道列表数据
@@ -57,20 +69,6 @@ const Publish = () => {
   const articleId = searchParams.get('id')
   const [form] = Form.useForm()
   // console.log(articleId)
-
-
-  // 使用redux获取频道列表数据
-  useEffect(() => {
-    dispatch(fetchChannelList())
-    // 文章列表点击编辑时回填数据
-    // 1. 通过id获取数据
-    async function getArticleDetail() {
-      const res = await getArticleById(articleId)
-      form.setFieldsValue(res.data)
-    }
-    getArticleDetail()
-    // 2. 调用实例方法 完成回填
-  }, [dispatch, articleId, form])
 
   // 提交表单数据
   const onFinish = async (formValue) => {
@@ -92,22 +90,37 @@ const Publish = () => {
     const res = await createArticleAPI(reqData)
     if (res) {
       message.success('创建文章成功')
-      form.resetFields()
     }
+    form.resetFields()  // 清空表单数据
   }
 
-  // 切换图片封面类型
-  const onTypeChange = (e) => {
-    // console.log(e.target.value)
-    setImageType(e.target.value)
-  }
 
-  // 上传图片的回调方法
-  const [imageList, setImageList] = useState([])
-  const onChange = (value) => {
-    console.log('正在上传中', value)
-    setImageList(value.fileList)
-  }
+  // 使用redux获取频道列表数据
+  useEffect(() => {
+    dispatch(fetchChannelList())
+    // 文章列表点击编辑时回填数据
+    // 1. 通过id获取数据
+    async function getArticleDetail() {
+      const res = await getArticleById(articleId)
+      // 因为res.data中获取的数据是->{data:{channel,content,cover:{type:3,images}},message:'ok'},data中没有type在cover中
+      // 我们需要的使用cover中的type来重新拼接数据
+      const data = res.data
+      const {cover} = data
+      form.setFieldsValue({
+        ...data,
+        type: cover.type
+      })
+      // 回填图片列表
+      setImageType(cover.type)
+      // 显示图片 需要的格式是[url:'xxxxx.xxxxx']
+      setImageList(cover.images.map(url => {
+        return {url}
+      }))
+    }
+    getArticleDetail()
+    // 2. 调用实例方法 完成回填
+  }, [dispatch, articleId, form])
+
 
   return (
     <div className="publish">
@@ -165,6 +178,7 @@ const Publish = () => {
                 name='image'
                 onChange={onChange}
                 maxCount={imageType}
+                fileList={imageList}
               >
                 <div style={{marginTop: 8}}>
                   <PlusOutlined/>
