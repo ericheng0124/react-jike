@@ -10,13 +10,13 @@ import {
   Select, message
 } from 'antd'
 import {PlusOutlined} from '@ant-design/icons'
-import {Link, useSearchParams} from 'react-router-dom'
+import {Link, useNavigate, useSearchParams} from 'react-router-dom'
 import './index.scss'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import {useEffect, useRef, useState} from "react"
 // import {getChannelAPI} from "@/apis/article"  // 使用axios获取频道列表数据
-import {createArticleAPI, getArticleById} from "@/apis/article"
+import {createArticleAPI, getArticleById, updateArticle} from "@/apis/article"
 // 使用redux获取频道列表
 import {useDispatch, useSelector} from "react-redux"
 import {fetchChannelList} from "@/store/modules/channel"
@@ -37,6 +37,8 @@ const Publish = () => {
   const {channelList} = useSelector(state => state.channel)
 
   const quillRef = useRef(null)
+
+  const navigate = useNavigate()
 
   // 切换图片封面类型
   const onTypeChange = (e) => {
@@ -82,16 +84,33 @@ const Publish = () => {
       content,
       cover: {
         type: imageType,  // 当前的封面模式
-        images: imageList.map(item => item.response.data.url)  // 图片列表
+        // 这个url的处理逻辑只适用于新增时候
+        // 编辑时候也需要做处理
+        images: imageList.map(item => {
+          if (item.response) {  // 发布文章的时候或者更新了imageType之后(单图变三图)
+            return item.response.data.url
+          } else {
+            return item.url
+          }
+        })  // 图片列表
       },
       channel_id
     }
     // 2. 调用接口提交表单数据
-    const res = await createArticleAPI(reqData)
-    if (res) {
-      message.success('创建文章成功')
+    // 根据是否有id来判断是调用新增接口还是编辑接口
+    if (articleId) {
+      const res = await updateArticle({...reqData, id:articleId})
+      if (res) {
+        message.success('更新文章成功')
+        navigate('/article')
+      }
+    } else {
+      const res = await createArticleAPI(reqData)
+      if (res) {
+        message.success('创建文章成功')
+        navigate('/article')
+      }
     }
-    form.resetFields()  // 清空表单数据
   }
 
 
@@ -117,8 +136,9 @@ const Publish = () => {
         return {url}
       }))
     }
+
     // 只有有id的时候才能调用此函数回填
-    if(articleId){
+    if (articleId) {
       getArticleDetail()
     }
     // 2. 调用实例方法 完成回填

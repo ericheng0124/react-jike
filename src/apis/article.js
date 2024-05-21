@@ -43,3 +43,12 @@ export function getArticleById(id){
     method:'GET'
   })
 }
+
+// 6. 更新文章
+export function updateArticle(data){
+  return request({
+    url:`/mp/articles/${data.id}?draft=false`,
+    method:'PUT',
+    data
+  })
+}
